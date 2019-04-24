@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="com.zhiyou100.mapper.VideoMapper">
+	
+	<!-- 查询所有video -->
+	<resultMap type="Video" id="videoListMax">
+		<id column="id" property="id"/>
+		<result column="title" property="title"/>
+		<result column="detail" property="detail"/>
+		<result column="time" property="time"/>
+		<result column="play_num" property="playNum"/>
+		<result column="speaker_id" property="speakerId"/>
+		<result column="course_id" property="courseId"/>
+		<result column="image_url" property="imageUrl"/>
+		<result column="video_url" property="videoUrl"/>
+		<association property="speaker" javaType="Speaker">
+			<id column="sid" property="id"/>
+			<result column="speaker_name" property="speakerName"/>
+			<result column="speaker_job" property="speakerJob"/>
+		</association>
+		<association property="course" javaType="Course">
+			<id column="cid" property="id"/>
+			<result column="course_title" property="courseTitle"/>
+			<result column="course_desc" property="couserDesc"/>
+		</association>
+	</resultMap>
+	<select id="videoList" resultMap="videoListMax" >
+		select 
+		v.id,v.title,v.detail,v.time,v.play_num,
+		s.id sid,s.speaker_name,s.speaker_job,
+		c.id cid ,c.course_title,c.course_desc   
+		from video v ,course c ,speaker s
+		where v.course_id = c.id and v.speaker_id = s.id
+	</select>
+	<!-- 查询讲师 -->
+	<resultMap type="Speaker" id="speakers">
+		<id column="id" property="id"/>
+		<result column="speaker_name" property="speakerName"/>
+		<result column="speaker_job" property="speakerJob"/>
+		<result column="head_img_url" property="headImgUrl"/>
+	</resultMap>
+	<select id="findSpeaker"  resultMap="speakers">
+		<!-- select s.id,s.speaker_name,s.speaker_job,s.head_img_url from speaker s -->
+		select * from speaker 
+	</select>
+	<!-- 查询course -->
+	<resultMap type="Course" id="courses">
+		<id column="id" property="id"/>
+		<result column="course_title" property="courseTitle"/>
+		<result column="course_desc" property="couserDesc"/>
+		<result column="subject_id " property="subjectId"/>
+	</resultMap>
+	<select id="findCourse" resultMap="courses">
+		select * from course 
+	</select>
+	<!-- 添加视频 -->
+	<insert id="insertVideo" parameterType="Video">
+		INSERT INTO `ssmvideo`.`video` 
+		( `title`, `detail`, `time`, `speaker_id`, `course_id`, `video_url`, `image_url`, `play_num` )
+		VALUES
+		( #{title}, #{detail}, #{time}, #{speakerId}, #{courseId}, #{videoUrl}, #{imageUrl},#{playNum});
+	</insert>
+	<select id="selectVideoById" parameterType="String" resultMap="videoListMax">
+		SELECT * FROM `video` where id = #{id}
+	</select>
+	<update id="updateVideo" parameterType="Video">
+		UPDATE `ssmvideo`.`video` 
+		SET `title` = #{title},
+		`detail` = #{detail},
+		`time` = #{time},
+		`speaker_id` = #{speakerId},
+		`course_id` = #{courseId},
+		`video_url` = #{videoUrl},
+		`image_url` = #{imageUrl}
+		WHERE `id` = #{id};
+	</update>
+	<delete id="deleteVedio" parameterType="String">
+		delete from video where id =
+			#{id}
+	</delete>
+	<delete id="deleteBatchVedio">
+		delete from video where id in
+		<foreach collection="array" item="id" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	<select id="findVedioByCondition"  parameterType="Video" resultMap="videoListMax">
+		  select 
+		v.id,v.title,v.detail,v.time,v.play_num,
+		s.id sid,s.speaker_name,s.speaker_job,
+		c.id cid ,c.course_title,c.course_desc   
+		from video v ,course c ,speaker s
+		where 
+		v.course_id = c.id 
+		and v.speaker_id = s.id 
+		<if test="courseId!= 0">
+			and v.course_id = ${courseId} 
+		</if>
+		<if test="speakerId!=0">
+			and v.speaker_id = ${speakerId}
+		</if>
+		 <if test=" !''.equals(detail) ">
+		 	and 	v.detail like  '%${detail}%'
+		 </if>
+		<if test=" !''.equals(title) ">
+		 	and  v.title like  '%${title}%' 
+		 </if>
+	</select>
+</mapper>
+
+
+
+
+
+

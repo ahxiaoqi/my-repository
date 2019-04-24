@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="com.zhiyou100.mapper.BeforeVideMapper">
+	<resultMap type="Subject" id="subjectId">
+		<id column="subject_id" property="id"/>
+		<result column="subject_name" property="subjectName"/>
+		<collection property="courses" ofType="Course">
+			<id column="course_id" property="id"></id>
+			<result column="course_title" property="courseTitle"/>
+			<result column="course_desc" property="couserDesc"/>
+			<result column="subject_id" property="subjectId"/>
+			<collection property="video" ofType="Video">
+				<id column="id" property="id"/>
+				<result column="title" property="title"/>
+				<result column="detile" property="detile"/>
+				<result column="time" property="time"/>
+				<result column="speaker_id" property="speakerId"/>
+				<result column="image_url" property="imageUrl"/>
+				<result column="video_url" property="videoUrl"/>
+				<result column="play_num" property="playNum"/>
+				<result column="course_id" property="courseId"/>
+				<association property="speaker" javaType="Speaker">
+					<result column="speaker_name" property="speakerName"/>
+					<result column="speaker_job" property="speakerJob"/>
+					<result column="speaker_img_url" property="headImgUrl"/>
+				</association>
+			</collection>
+		</collection>
+	</resultMap>
+	<select id="BeforeVideService" parameterType="String" resultMap="subjectId">
+		SELECT
+			v.id,
+			v.title,
+			v.detail,
+			v.time,
+			v.speaker_id,
+			v.course_id,
+			v.video_url,
+			v.image_url,
+			v.play_num,
+			c.course_title,
+			c.course_desc,
+			c.subject_id,
+			s.id,
+			s.subject_name,
+			sp.speaker_name,
+			sp.speaker_desc,
+			sp.speaker_job,
+			sp.speaker_img_url 
+		FROM
+			`video` v,
+			course c,
+			SUBJECT s,
+			speaker sp 
+		WHERE
+			s.id=c.subject_id 
+			and c.id=v.course_id
+			and sp.id=v.speaker_id
+			and s.id=#{id}
+	</select> 
+
+	<resultMap type="Video" id="videoListMax">
+		<id column="id" property="id"/>
+		<result column="title" property="title"/>
+		<result column="detail" property="detail"/>
+		<result column="time" property="time"/>
+		<result column="play_num" property="playNum"/>
+		<result column="speaker_id" property="speakerId"/>
+		<result column="course_id" property="courseId"/>
+		<result column="image_url" property="imageUrl"/>
+		<result column="video_url" property="videoUrl"/>
+		<association property="speaker" javaType="Speaker">
+			<id column="sid" property="id"/>
+			<result column="speaker_name" property="speakerName"/>
+			<result column="speaker_job" property="speakerJob"/>
+		</association>
+		<association property="course" javaType="Course">
+			<id column="cid" property="id"/>
+			<result column="course_title" property="courseTitle"/>
+			<result column="course_desc" property="couserDesc"/>
+		</association>
+	</resultMap>
+	<select id="findVideoByVideoId" parameterType="String" resultMap="videoListMax">
+			select * from video v,speaker s where   s.id=v.speaker_id and v.id = #{id}	
+	</select>
+</mapper>

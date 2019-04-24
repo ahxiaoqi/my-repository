@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="
+    	 http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+     
+     <!-- 1 开启扫描 -->   
+     <!-- 扫描Spring注解 -->   
+     <context:component-scan base-package="com.zhiyou100">
+     	<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+     </context:component-scan>
+     <!-- 5 加载jdbc配置文件 -->
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+     <!-- 2 创建dbcp数据源 -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${jdbc.driverClass}"></property>
+		<property name="url" value="${jdbc.url}"></property>
+		<property name="username" value="${jdbc.username}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+	</bean>
+	
+	<!-- 3.事务管理器 
+		需要注入数据源
+	-->
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+     <!-- 4 扫描事务注解 -->   
+     <tx:annotation-driven transaction-manager="txManager"/>   
+    
+	
+	<!-- 6.由Spring创建SqlSession -->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 注入数据源 -->
+		<property name="dataSource" ref="dataSource"></property>
+		<!-- mybatis配置文件的路径 -->
+		<property name="configLocation" value="classpath:mybatis.xml"></property>
+		<property name="plugins">
+		    <array>
+		      <bean class="com.github.pagehelper.PageInterceptor">
+		        <property name="properties">
+		          <!-- config params as the following -->
+		          <value>
+		             helperdialect=mysql
+		          	 reasonable=true
+                     supportMethodsArguments=true
+                     params=count=countSql
+                     autoRuntimeDialect=true
+                     
+		          </value>
+		        </property>
+		      </bean>
+		    </array>
+ 		</property>
+	</bean>
+	
+	<!-- 7.由Spring产生接口文件的代理对象 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.zhiyou100.mapper"/>
+		<property name="sqlSessionFactoryBeanName" value="sqlSession"/>
+	</bean>
+	
+	
+	
+</beans>
+
+
+
+
+
+
+
